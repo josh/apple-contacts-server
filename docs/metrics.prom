@@ -1,0 +1,72 @@
+# HELP process_start_time_seconds Start time of the process since the Unix epoch; a change is a restart.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1795600000
+# HELP contacts_http_requests_total HTTP requests answered, by route and status code.
+# TYPE contacts_http_requests_total counter
+contacts_http_requests_total{route="/graphql",code="200"} 42
+contacts_http_requests_total{route="/mcp",code="200"} 17
+contacts_http_requests_total{route="/metrics",code="200"} 96
+contacts_http_requests_total{route="other",code="404"} 1
+# HELP contacts_main_actor_heartbeat_age_seconds Seconds since the main actor last ran a watchdog heartbeat; the process exits past 120.
+# TYPE contacts_main_actor_heartbeat_age_seconds gauge
+contacts_main_actor_heartbeat_age_seconds 3.2
+# HELP contacts_authorization_pending 1 while the startup Contacts access request has not been answered; /graphql and /mcp answer NOT_AUTHORIZED meanwhile.
+# TYPE contacts_authorization_pending gauge
+contacts_authorization_pending 0
+# HELP contacts_access_granted 1 when macOS grants this process access to Contacts; without it /graphql and /mcp answer NOT_AUTHORIZED.
+# TYPE contacts_access_granted gauge
+contacts_access_granted 1
+# HELP contacts_store_up 1 when the last background read of the contact store succeeded and its gauges follow.
+# TYPE contacts_store_up gauge
+contacts_store_up 1
+# HELP contacts_observation_timestamp_seconds When the store gauges were read, since the Unix epoch.
+# TYPE contacts_observation_timestamp_seconds gauge
+contacts_observation_timestamp_seconds 1795600000
+# HELP contacts_containers Containers the store reports.
+# TYPE contacts_containers gauge
+contacts_containers 1
+# HELP contacts_container_info One series per container, carrying its name and type; the value is always 1.
+# TYPE contacts_container_info gauge
+contacts_container_info{container_id="00000000-0000-0000-0000-000000000001:ABAccount",name="iCloud",type="card_dav"} 1
+# HELP contacts_contacts Stored cards, by container and contact type.
+# TYPE contacts_contacts gauge
+contacts_contacts{container_id="00000000-0000-0000-0000-000000000001:ABAccount",contact_type="person"} 120
+contacts_contacts{container_id="00000000-0000-0000-0000-000000000001:ABAccount",contact_type="organization"} 45
+# HELP contacts_contacts_with Stored cards that have a value for the key, by container.
+# TYPE contacts_contacts_with gauge
+contacts_contacts_with{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="image_data"} 60
+contacts_contacts_with{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="phone_numbers"} 150
+contacts_contacts_with{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="email_addresses"} 140
+contacts_contacts_with{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="postal_addresses"} 50
+contacts_contacts_with{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="url_addresses"} 90
+contacts_contacts_with{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="birthday"} 12
+contacts_contacts_with{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="organization_name"} 130
+# HELP contacts_labeled_values Labelled entries on stored cards, by container, key, and whether the label is built in, custom, or absent.
+# TYPE contacts_labeled_values gauge
+contacts_labeled_values{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="phone_numbers",label_kind="builtin"} 200
+contacts_labeled_values{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="phone_numbers",label_kind="custom"} 3
+contacts_labeled_values{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="phone_numbers",label_kind="none"} 0
+contacts_labeled_values{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="email_addresses",label_kind="builtin"} 260
+contacts_labeled_values{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="email_addresses",label_kind="custom"} 8
+contacts_labeled_values{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="email_addresses",label_kind="none"} 0
+contacts_labeled_values{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="postal_addresses",label_kind="builtin"} 55
+contacts_labeled_values{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="postal_addresses",label_kind="custom"} 0
+contacts_labeled_values{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="postal_addresses",label_kind="none"} 0
+contacts_labeled_values{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="url_addresses",label_kind="builtin"} 95
+contacts_labeled_values{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="url_addresses",label_kind="custom"} 0
+contacts_labeled_values{container_id="00000000-0000-0000-0000-000000000001:ABAccount",key="url_addresses",label_kind="none"} 0
+# HELP contacts_groups Groups, by container.
+# TYPE contacts_groups gauge
+contacts_groups{container_id="00000000-0000-0000-0000-000000000001:ABAccount"} 1
+# HELP contacts_group_info One series per group, carrying its name; the value is always 1.
+# TYPE contacts_group_info gauge
+contacts_group_info{container_id="00000000-0000-0000-0000-000000000001:ABAccount",group_id="00000000-0000-0000-0000-000000000002:ABGroup",name="Family"} 1
+# HELP contacts_group_members Stored cards in each group.
+# TYPE contacts_group_members gauge
+contacts_group_members{group_id="00000000-0000-0000-0000-000000000002:ABGroup"} 6
+# HELP contacts_linked_contacts Stored cards Contacts shows together with another card.
+# TYPE contacts_linked_contacts gauge
+contacts_linked_contacts 4
+# HELP contacts_me_contact 1 when the store has a card marked as the user's own.
+# TYPE contacts_me_contact gauge
+contacts_me_contact 1

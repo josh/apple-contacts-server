@@ -1,0 +1,1910 @@
+type Query {
+  """
+  Stored cards, in the name order chosen in Contacts settings unless ordered otherwise.
+  """
+  contacts(
+    limit: Int! = 50
+    offset: Int! = 0
+    filter: ContactFilter
+    orderBy: ContactOrder
+  ): ContactPage
+
+  """
+  Find a stored card by its identifier; null when missing.
+  """
+  contact(id: ID!): Contact
+
+  """
+  Groups in every container, by name.
+  """
+  groups(limit: Int! = 50, offset: Int! = 0, filter: GroupFilter): GroupPage
+
+  """
+  Find a group by its identifier; null when missing.
+  """
+  group(id: ID!): Group
+
+  """
+  Every container, by identifier.
+  """
+  containers: [Container!]!
+
+  """
+  Find a container by its identifier; null when missing.
+  """
+  container(id: ID!): Container
+
+  """
+  The container new cards go to and the user's own card.
+  """
+  defaults: Defaults
+
+  """
+  Counts across the whole store.
+  """
+  summary: Summary
+
+  """
+  Export cards as one vCard 3.0 file. By default cards are unified, so a person with cards in two accounts is exported once.
+  """
+  exportVCard(
+    """
+    Cards to export; all cards when omitted.
+    """
+    filter: ContactFilter
+
+    """
+    Export people as Contacts shows them rather than each stored card; defaults to true.
+    """
+    unify: Boolean! = true
+
+    """
+    Add each card's note, read from Contacts through scripting, which launches Contacts when it is not running; defaults to false.
+    """
+    includeNotes: Boolean! = false
+
+    """
+    Add each card's picture as a PHOTO line; defaults to false.
+    """
+    includeImages: Boolean! = false
+  ): VCardExport
+}
+
+input ContactFilter {
+  """
+  Case- and accent-insensitive substring of any name, the organization, department, job title, an email address, URL, postal address, profile, or related name. A query with three or more digits also matches phone numbers, whatever their punctuation.
+  """
+  query: String
+
+  """
+  Match any of these cards; [] matches nothing.
+  """
+  identifiers: [ID!]
+
+  """
+  Match any of these types; [] matches nothing.
+  """
+  contactTypes: [ContactType!]
+
+  """
+  Match cards stored in any of these containers.
+  """
+  containerIdentifiers: [ID!]
+
+  """
+  Match cards that belong to any of these groups.
+  """
+  groupIdentifiers: [ID!]
+
+  """
+  Match cards that have a value for every one of these keys. NOTE is read from Contacts through scripting, which launches Contacts when it is not running.
+  """
+  has: [ContactKey!]
+
+  """
+  Match cards that have no value for any of these keys.
+  """
+  missing: [ContactKey!]
+
+  """
+  Match cards with an entry carrying any of these labels: a stored token, a custom label, or a built-in label's word such as home, work, mobile, or other.
+  """
+  labels: [String!]
+
+  """
+  Match cards that do, or do not, have an entry with a custom label. Social profiles and instant message addresses are not counted: their labels name the service.
+  """
+  customLabels: Boolean
+
+  """
+  Match cards Contacts does, or does not, show together with another card.
+  """
+  linked: Boolean
+
+  """
+  Created at or after this instant: an RFC 3339 timestamp, or YYYY-MM-DD for that day's midnight in the host zone. Creation dates are read from Contacts through scripting, which launches Contacts when it is not running.
+  """
+  createdFrom: String
+
+  """
+  Created before this instant; same forms and cost as createdFrom.
+  """
+  createdBefore: String
+
+  """
+  Last changed at or after this instant; same forms and cost as createdFrom.
+  """
+  modifiedFrom: String
+
+  """
+  Last changed before this instant; same forms and cost as createdFrom.
+  """
+  modifiedBefore: String
+}
+
+enum ContactType {
+  """
+  A person.
+  """
+  PERSON
+
+  """
+  A card shown by its company name.
+  """
+  ORGANIZATION
+}
+
+enum ContactKey {
+  NAME_PREFIX
+  GIVEN_NAME
+  MIDDLE_NAME
+  FAMILY_NAME
+  PREVIOUS_FAMILY_NAME
+  NAME_SUFFIX
+  NICKNAME
+  PHONETIC_GIVEN_NAME
+  PHONETIC_MIDDLE_NAME
+  PHONETIC_FAMILY_NAME
+  PHONETIC_ORGANIZATION_NAME
+  ORGANIZATION_NAME
+  DEPARTMENT_NAME
+  JOB_TITLE
+  PHONE_NUMBERS
+  EMAIL_ADDRESSES
+  POSTAL_ADDRESSES
+  URL_ADDRESSES
+  CONTACT_RELATIONS
+  SOCIAL_PROFILES
+  INSTANT_MESSAGE_ADDRESSES
+  DATES
+  BIRTHDAY
+  NON_GREGORIAN_BIRTHDAY
+
+  """
+  The card's picture.
+  """
+  IMAGE_DATA
+
+  """
+  The note, which only Contacts scripting provides.
+  """
+  NOTE
+}
+
+input ContactOrder {
+  """
+  What to sort by. USER_DEFAULT is the name order chosen in Contacts settings; a card without the value sorts last. CREATION_DATE and MODIFICATION_DATE are read from Contacts through scripting, which launches Contacts when it is not running.
+  """
+  field: ContactSortField!
+
+  """
+  ASC or DESC; defaults to ASC.
+  """
+  direction: SortDirection = ASC
+}
+
+enum ContactSortField {
+  """
+  The name order chosen in Contacts settings.
+  """
+  USER_DEFAULT
+
+  """
+  First name, then last name; a card without a name sorts by organization.
+  """
+  GIVEN_NAME
+
+  """
+  Last name, then first name; a card without a name sorts by organization.
+  """
+  FAMILY_NAME
+
+  """
+  The organization, ignoring case and accents.
+  """
+  ORGANIZATION_NAME
+
+  """
+  Month and day of the birthday, then year.
+  """
+  BIRTHDAY
+
+  """
+  When the card was created; read from Contacts through scripting.
+  """
+  CREATION_DATE
+
+  """
+  When the card last changed; read from Contacts through scripting.
+  """
+  MODIFICATION_DATE
+}
+
+enum SortDirection {
+  """
+  Smallest or earliest first.
+  """
+  ASC
+
+  """
+  Largest or latest first.
+  """
+  DESC
+}
+
+type ContactPage {
+  """
+  Stored cards on this page.
+  """
+  items: [Contact!]!
+
+  """
+  Number of matching cards across all pages.
+  """
+  totalCount: Int!
+
+  """
+  Position and availability of neighboring pages.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+One stored card, with the property names of CNContact. Cards are read as stored, not unified.
+"""
+type Contact {
+  """
+  The stored card's identifier, as CNContact.identifier reports it. It does not change over time.
+  """
+  identifier: ID!
+
+  """
+  PERSON, or ORGANIZATION for a card shown by its company name.
+  """
+  contactType: ContactType!
+
+  """
+  A title before the name, such as Dr.
+  """
+  namePrefix: String
+
+  """
+  The first name.
+  """
+  givenName: String
+
+  """
+  The middle name.
+  """
+  middleName: String
+
+  """
+  The last name.
+  """
+  familyName: String
+
+  """
+  A former last name, such as a maiden name.
+  """
+  previousFamilyName: String
+
+  """
+  A suffix after the name, such as Jr.
+  """
+  nameSuffix: String
+
+  """
+  The nickname.
+  """
+  nickname: String
+
+  """
+  How the first name is pronounced.
+  """
+  phoneticGivenName: String
+
+  """
+  How the middle name is pronounced.
+  """
+  phoneticMiddleName: String
+
+  """
+  How the last name is pronounced.
+  """
+  phoneticFamilyName: String
+
+  """
+  How the organization name is pronounced.
+  """
+  phoneticOrganizationName: String
+
+  """
+  The company or organization.
+  """
+  organizationName: String
+
+  """
+  The department within the organization.
+  """
+  departmentName: String
+
+  """
+  The job title.
+  """
+  jobTitle: String
+
+  """
+  Phone numbers, in the card's order.
+  """
+  phoneNumbers: [LabeledPhoneNumber!]!
+
+  """
+  Email addresses, in the card's order.
+  """
+  emailAddresses: [LabeledString!]!
+
+  """
+  Postal addresses, in the card's order.
+  """
+  postalAddresses: [LabeledPostalAddress!]!
+
+  """
+  URLs, in the card's order.
+  """
+  urlAddresses: [LabeledString!]!
+
+  """
+  Related people by name, such as a spouse or an assistant.
+  """
+  contactRelations: [LabeledContactRelation!]!
+
+  """
+  Social profiles.
+  """
+  socialProfiles: [LabeledSocialProfile!]!
+
+  """
+  Instant message addresses.
+  """
+  instantMessageAddresses: [LabeledInstantMessageAddress!]!
+
+  """
+  Dates other than the birthday, such as an anniversary.
+  """
+  dates: [LabeledDateComponents!]!
+
+  """
+  The birthday in the Gregorian calendar; the year may be absent.
+  """
+  birthday: DateComponents
+
+  """
+  The birthday in another calendar, when the card has one.
+  """
+  nonGregorianBirthday: DateComponents
+
+  """
+  Whether the card has a picture.
+  """
+  imageDataAvailable: Boolean!
+
+  """
+  The name as Contacts formats it; absent for a card with no name or organization.
+  """
+  fullName: String
+
+  """
+  Identifier of the container that stores the card.
+  """
+  containerIdentifier: ID
+
+  """
+  Identifiers of the groups the card belongs to.
+  """
+  groupIdentifiers: [ID!]!
+
+  """
+  Identifiers of the other stored cards Contacts shows together with this one as one person; empty for a card that stands alone.
+  """
+  linkedContactIdentifiers: [ID!]!
+
+  """
+  Whether this is the user's own card.
+  """
+  isMe: Boolean!
+
+  """
+  The note. Read from Contacts through scripting, which launches Contacts when it is not running.
+  """
+  note: String
+
+  """
+  When the card was created. Read from Contacts through scripting, which launches Contacts when it is not running.
+  """
+  creationDate: DateTime
+
+  """
+  When the card last changed. Read from Contacts through scripting, which launches Contacts when it is not running.
+  """
+  modificationDate: DateTime
+
+  """
+  A small version of the card's picture, as base64.
+  """
+  thumbnailImageData: String
+
+  """
+  The card's picture as stored, as base64.
+  """
+  imageData: String
+
+  """
+  The card as a vCard 3.0. The note and the picture are added only when asked for; the note is read from Contacts through scripting.
+  """
+  vCard(includeNote: Boolean! = false, includeImage: Boolean! = false): String!
+
+  """
+  The container that stores the card.
+  """
+  container: Container
+
+  """
+  The groups the card belongs to.
+  """
+  groups: [Group!]!
+
+  """
+  The other stored cards Contacts shows together with this one.
+  """
+  linkedContacts: [Contact!]!
+}
+
+"""
+One labelled entry of a card, as CNLabeledValue.
+"""
+type LabeledPhoneNumber {
+  """
+  Identifier of this entry within the card, as CNLabeledValue.identifier reports it.
+  """
+  identifier: ID!
+
+  """
+  The label as stored. A built-in label is a token such as _$!<Home>!$_; any other string is a custom label. Absent when the entry has none.
+  """
+  label: String
+
+  """
+  The label as Contacts shows it, such as home or mobile.
+  """
+  localizedLabel: String
+
+  """
+  The entry's value.
+  """
+  value: PhoneNumber!
+}
+
+"""
+A phone number, as CNPhoneNumber.
+"""
+type PhoneNumber {
+  """
+  The number as written on the card.
+  """
+  stringValue: String!
+}
+
+"""
+One labelled entry of a card, as CNLabeledValue.
+"""
+type LabeledString {
+  """
+  Identifier of this entry within the card, as CNLabeledValue.identifier reports it.
+  """
+  identifier: ID!
+
+  """
+  The label as stored. A built-in label is a token such as _$!<Home>!$_; any other string is a custom label. Absent when the entry has none.
+  """
+  label: String
+
+  """
+  The label as Contacts shows it, such as home or mobile.
+  """
+  localizedLabel: String
+
+  """
+  The entry's value.
+  """
+  value: String!
+}
+
+"""
+One labelled entry of a card, as CNLabeledValue.
+"""
+type LabeledPostalAddress {
+  """
+  Identifier of this entry within the card, as CNLabeledValue.identifier reports it.
+  """
+  identifier: ID!
+
+  """
+  The label as stored. A built-in label is a token such as _$!<Home>!$_; any other string is a custom label. Absent when the entry has none.
+  """
+  label: String
+
+  """
+  The label as Contacts shows it, such as home or mobile.
+  """
+  localizedLabel: String
+
+  """
+  The entry's value.
+  """
+  value: PostalAddress!
+}
+
+"""
+A postal address, as CNPostalAddress.
+"""
+type PostalAddress {
+  """
+  Street lines, separated by newlines.
+  """
+  street: String
+
+  """
+  A neighborhood or district within the city.
+  """
+  subLocality: String
+
+  """
+  The city.
+  """
+  city: String
+
+  """
+  A county or similar area within the state.
+  """
+  subAdministrativeArea: String
+
+  """
+  The state or province.
+  """
+  state: String
+
+  """
+  The postal code.
+  """
+  postalCode: String
+
+  """
+  The country as written on the card.
+  """
+  country: String
+
+  """
+  The ISO 3166-1 alpha-2 country code, in lowercase.
+  """
+  isoCountryCode: String
+}
+
+"""
+One labelled entry of a card, as CNLabeledValue.
+"""
+type LabeledContactRelation {
+  """
+  Identifier of this entry within the card, as CNLabeledValue.identifier reports it.
+  """
+  identifier: ID!
+
+  """
+  The label as stored. A built-in label is a token such as _$!<Home>!$_; any other string is a custom label. Absent when the entry has none.
+  """
+  label: String
+
+  """
+  The label as Contacts shows it, such as home or mobile.
+  """
+  localizedLabel: String
+
+  """
+  The entry's value.
+  """
+  value: ContactRelation!
+}
+
+"""
+A related person, as CNContactRelation.
+"""
+type ContactRelation {
+  """
+  The related person's name.
+  """
+  name: String!
+}
+
+"""
+One labelled entry of a card, as CNLabeledValue.
+"""
+type LabeledSocialProfile {
+  """
+  Identifier of this entry within the card, as CNLabeledValue.identifier reports it.
+  """
+  identifier: ID!
+
+  """
+  The label as stored. A built-in label is a token such as _$!<Home>!$_; any other string is a custom label. Absent when the entry has none.
+  """
+  label: String
+
+  """
+  The label as Contacts shows it, such as home or mobile.
+  """
+  localizedLabel: String
+
+  """
+  The entry's value.
+  """
+  value: SocialProfile!
+}
+
+"""
+A social profile, as CNSocialProfile.
+"""
+type SocialProfile {
+  """
+  URL of the profile.
+  """
+  urlString: String
+
+  """
+  The user name on the service.
+  """
+  username: String
+
+  """
+  The service's own identifier for the user.
+  """
+  userIdentifier: String
+
+  """
+  The service, such as LinkedIn.
+  """
+  service: String
+}
+
+"""
+One labelled entry of a card, as CNLabeledValue.
+"""
+type LabeledInstantMessageAddress {
+  """
+  Identifier of this entry within the card, as CNLabeledValue.identifier reports it.
+  """
+  identifier: ID!
+
+  """
+  The label as stored. A built-in label is a token such as _$!<Home>!$_; any other string is a custom label. Absent when the entry has none.
+  """
+  label: String
+
+  """
+  The label as Contacts shows it, such as home or mobile.
+  """
+  localizedLabel: String
+
+  """
+  The entry's value.
+  """
+  value: InstantMessageAddress!
+}
+
+"""
+An instant message address, as CNInstantMessageAddress.
+"""
+type InstantMessageAddress {
+  """
+  The user name on the service.
+  """
+  username: String
+
+  """
+  The service, such as Skype.
+  """
+  service: String
+}
+
+"""
+One labelled entry of a card, as CNLabeledValue.
+"""
+type LabeledDateComponents {
+  """
+  Identifier of this entry within the card, as CNLabeledValue.identifier reports it.
+  """
+  identifier: ID!
+
+  """
+  The label as stored. A built-in label is a token such as _$!<Home>!$_; any other string is a custom label. Absent when the entry has none.
+  """
+  label: String
+
+  """
+  The label as Contacts shows it, such as home or mobile.
+  """
+  localizedLabel: String
+
+  """
+  The entry's value.
+  """
+  value: DateComponents!
+}
+
+"""
+A day as Contacts stores it, which may have no year; as NSDateComponents.
+"""
+type DateComponents {
+  """
+  Identifier of the calendar the parts are in, such as chinese or hebrew; absent for Gregorian.
+  """
+  calendar: String
+
+  """
+  The era, for a calendar other than Gregorian.
+  """
+  era: Int
+
+  """
+  The year; absent for a date without one.
+  """
+  year: Int
+
+  """
+  The month, from 1.
+  """
+  month: Int
+
+  """
+  The day of the month, from 1.
+  """
+  day: Int
+
+  """
+  True when the month is a leap month of a lunar calendar.
+  """
+  isLeapMonth: Boolean
+}
+
+"""
+RFC 3339 timestamp with an explicit offset, serialized in UTC.
+"""
+scalar DateTime
+
+"""
+One address book of an account, as CNContainer.
+"""
+type Container {
+  """
+  The container's identifier, as CNContainer.identifier reports it.
+  """
+  identifier: ID!
+
+  """
+  The container's name; often empty for an account's only container.
+  """
+  name: String!
+
+  """
+  LOCAL for On My Mac, EXCHANGE, CARD_DAV for iCloud and other CardDAV accounts, or UNASSIGNED.
+  """
+  type: ContainerType!
+
+  """
+  Whether new cards go to this container unless another is named.
+  """
+  isDefault: Boolean!
+
+  """
+  Number of stored cards in the container.
+  """
+  contactCount: Int!
+
+  """
+  Number of groups in the container.
+  """
+  groupCount: Int!
+
+  """
+  Groups stored in this container, by name.
+  """
+  groups: [Group!]!
+}
+
+enum ContainerType {
+  """
+  The store does not say.
+  """
+  UNASSIGNED
+
+  """
+  On My Mac.
+  """
+  LOCAL
+
+  """
+  An Exchange folder.
+  """
+  EXCHANGE
+
+  """
+  A CardDAV address book, which is how iCloud appears.
+  """
+  CARD_DAV
+}
+
+"""
+A group of cards, as CNGroup.
+"""
+type Group {
+  """
+  The group's identifier, as CNGroup.identifier reports it.
+  """
+  identifier: ID!
+
+  """
+  The group's name.
+  """
+  name: String!
+
+  """
+  Identifier of the container that stores the group.
+  """
+  containerIdentifier: ID!
+
+  """
+  Identifier of the group this one is nested in; absent at the top level.
+  """
+  parentGroupIdentifier: ID
+
+  """
+  Identifiers of the groups nested in this one.
+  """
+  subgroupIdentifiers: [ID!]!
+
+  """
+  Number of stored cards in the group.
+  """
+  memberCount: Int!
+
+  """
+  Cards in this group; filters apply within it.
+  """
+  members(
+    limit: Int! = 50
+    offset: Int! = 0
+    filter: ContactFilter
+    orderBy: ContactOrder
+  ): ContactPage
+
+  """
+  The container that stores the group.
+  """
+  container: Container
+}
+
+type PageInfo {
+  """
+  Requested zero-based offset.
+  """
+  offset: Int!
+
+  """
+  Requested maximum page size.
+  """
+  limit: Int!
+
+  """
+  Whether results exist after this page.
+  """
+  hasNextPage: Boolean!
+
+  """
+  Whether matching results exist before the requested offset.
+  """
+  hasPreviousPage: Boolean!
+}
+
+input GroupFilter {
+  """
+  Case- and accent-insensitive substring of the group's name.
+  """
+  query: String
+
+  """
+  Match groups stored in any of these containers.
+  """
+  containerIdentifiers: [ID!]
+}
+
+type GroupPage {
+  """
+  Groups on this page.
+  """
+  items: [Group!]!
+
+  """
+  Number of matching groups across all pages.
+  """
+  totalCount: Int!
+
+  """
+  Position and availability of neighboring pages.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+The container new cards go to and the user's own card.
+"""
+type Defaults {
+  """
+  Identifier of the container new cards go to unless another is named.
+  """
+  defaultContainerIdentifier: ID!
+
+  """
+  Identifier of the user's own card; absent when none is set.
+  """
+  meContactIdentifier: ID
+}
+
+"""
+Counts across the whole store.
+"""
+type Summary {
+  """
+  Stored cards in every container.
+  """
+  contactCount: Int!
+
+  """
+  Cards whose contactType is PERSON.
+  """
+  personCount: Int!
+
+  """
+  Cards whose contactType is ORGANIZATION.
+  """
+  organizationCount: Int!
+
+  """
+  Cards Contacts shows together with another card.
+  """
+  linkedContactCount: Int!
+
+  """
+  Groups in every container.
+  """
+  groupCount: Int!
+
+  """
+  Containers.
+  """
+  containerCount: Int!
+}
+
+"""
+Cards as one vCard 3.0 file.
+"""
+type VCardExport {
+  """
+  The vCard text.
+  """
+  vCard: String!
+
+  """
+  Number of cards in the text.
+  """
+  contactCount: Int!
+
+  """
+  Size of the text in bytes.
+  """
+  byteCount: Int!
+}
+
+type Mutation {
+  """
+  Create a card. It needs a name, an organization, a phone number, or an email address.
+  """
+  createContact(input: CreateContactInput!): Contact
+
+  """
+  Change one stored card. Only what the patch names changes: a text field is replaced, and a list changes by add, update, and remove, leaving its other entries as they are. Values cannot be null or blank; remove one with clearFields.
+  """
+  updateContact(
+    id: ID!
+
+    """
+    The changes; at least one.
+    """
+    patch: ContactPatch!
+  ): Contact
+
+  """
+  Delete one stored card. The result carries a vCard of the card taken just before, so it can be restored. The user's own card is refused.
+  """
+  deleteContact(id: ID!): DeleteContactResult
+
+  """
+  Create a group.
+  """
+  createGroup(input: CreateGroupInput!): Group
+
+  """
+  Rename a group.
+  """
+  updateGroup(id: ID!, patch: GroupPatch!): Group
+
+  """
+  Delete a group. Its cards are not deleted.
+  """
+  deleteGroup(id: ID!): DeleteResult
+
+  """
+  Add cards to a group, through Contacts scripting, which launches Contacts when it is not running. A card already in the group stays in it.
+  """
+  addGroupMembers(
+    id: ID!
+
+    """
+    Identifiers of stored cards; each must be in the group's container.
+    """
+    contactIdentifiers: [ID!]!
+  ): Group
+
+  """
+  Remove cards from a group, through Contacts scripting, which launches Contacts when it is not running. The cards themselves are not deleted.
+  """
+  removeGroupMembers(
+    id: ID!
+
+    """
+    Identifiers of stored cards; each must be in the group's container.
+    """
+    contactIdentifiers: [ID!]!
+  ): Group
+
+  """
+  Make a card the user's own card (My Card), through Contacts scripting; this launches Contacts when it is not running.
+  """
+  setMeContact(id: ID!): Contact
+
+  """
+  Select a card in Contacts and bring Contacts forward. Navigation only: nothing is stored.
+  """
+  showContact(id: ID!): Contact
+}
+
+input CreateContactInput {
+  """
+  PERSON, or ORGANIZATION for a card shown by its company name.
+  """
+  contactType: ContactType
+
+  """
+  A title before the name, such as Dr.
+  """
+  namePrefix: String
+
+  """
+  The first name.
+  """
+  givenName: String
+
+  """
+  The middle name.
+  """
+  middleName: String
+
+  """
+  The last name.
+  """
+  familyName: String
+
+  """
+  A former last name, such as a maiden name.
+  """
+  previousFamilyName: String
+
+  """
+  A suffix after the name, such as Jr.
+  """
+  nameSuffix: String
+
+  """
+  The nickname.
+  """
+  nickname: String
+
+  """
+  How the first name is pronounced.
+  """
+  phoneticGivenName: String
+
+  """
+  How the middle name is pronounced.
+  """
+  phoneticMiddleName: String
+
+  """
+  How the last name is pronounced.
+  """
+  phoneticFamilyName: String
+
+  """
+  How the organization name is pronounced.
+  """
+  phoneticOrganizationName: String
+
+  """
+  The company or organization.
+  """
+  organizationName: String
+
+  """
+  The department within the organization.
+  """
+  departmentName: String
+
+  """
+  The job title.
+  """
+  jobTitle: String
+
+  """
+  Phone numbers, in the card's order. Entries for this list.
+  """
+  phoneNumbers: [LabeledPhoneNumberInput!]
+
+  """
+  Email addresses, in the card's order. Entries for this list.
+  """
+  emailAddresses: [LabeledStringInput!]
+
+  """
+  Postal addresses, in the card's order. Entries for this list.
+  """
+  postalAddresses: [LabeledPostalAddressInput!]
+
+  """
+  URLs, in the card's order. Entries for this list.
+  """
+  urlAddresses: [LabeledStringInput!]
+
+  """
+  Related people by name, such as a spouse or an assistant. Entries for this list.
+  """
+  contactRelations: [LabeledContactRelationInput!]
+
+  """
+  Social profiles. Entries for this list.
+  """
+  socialProfiles: [LabeledSocialProfileInput!]
+
+  """
+  Instant message addresses. Entries for this list.
+  """
+  instantMessageAddresses: [LabeledInstantMessageAddressInput!]
+
+  """
+  Dates other than the birthday, such as an anniversary. Entries for this list.
+  """
+  dates: [LabeledDateComponentsInput!]
+
+  """
+  The birthday in the Gregorian calendar; omit year for a birthday without one.
+  """
+  birthday: DateComponentsInput
+
+  """
+  The birthday in another calendar; calendar is required, such as chinese or hebrew.
+  """
+  nonGregorianBirthday: DateComponentsInput
+
+  """
+  The note, set through Contacts scripting after the card's other changes are saved; this launches Contacts when it is not running.
+  """
+  note: String
+
+  """
+  The card's picture as base64 of an image such as PNG or JPEG. The request body is limited to 1 MiB, which allows a picture of about 700 KB.
+  """
+  imageData: String
+
+  """
+  Container to store the card in; defaults to the container new cards go to.
+  """
+  containerIdentifier: ID
+
+  """
+  Groups to add the card to; each must be in the card's container.
+  """
+  groupIdentifiers: [ID!]
+}
+
+input LabeledPhoneNumberInput {
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: PhoneNumberInput!
+}
+
+input PhoneNumberInput {
+  """
+  The number as written on the card.
+  """
+  stringValue: String!
+}
+
+input LabeledStringInput {
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: String!
+}
+
+input LabeledPostalAddressInput {
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: PostalAddressInput!
+}
+
+"""
+A postal address. In an update, a part that is present replaces the stored one.
+"""
+input PostalAddressInput {
+  """
+  Street lines, separated by newlines.
+  """
+  street: String
+
+  """
+  A neighborhood or district within the city.
+  """
+  subLocality: String
+
+  """
+  The city.
+  """
+  city: String
+
+  """
+  A county or similar area within the state.
+  """
+  subAdministrativeArea: String
+
+  """
+  The state or province.
+  """
+  state: String
+
+  """
+  The postal code.
+  """
+  postalCode: String
+
+  """
+  The country as written on the card.
+  """
+  country: String
+
+  """
+  The ISO 3166-1 alpha-2 country code, in lowercase.
+  """
+  isoCountryCode: String
+}
+
+input LabeledContactRelationInput {
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: ContactRelationInput!
+}
+
+input ContactRelationInput {
+  """
+  The related person's name.
+  """
+  name: String!
+}
+
+input LabeledSocialProfileInput {
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: SocialProfileInput!
+}
+
+"""
+A social profile; it needs a username or a urlString.
+"""
+input SocialProfileInput {
+  """
+  URL of the profile.
+  """
+  urlString: String
+
+  """
+  The user name on the service.
+  """
+  username: String
+
+  """
+  The service's own identifier for the user.
+  """
+  userIdentifier: String
+
+  """
+  The service, such as LinkedIn.
+  """
+  service: String
+}
+
+input LabeledInstantMessageAddressInput {
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: InstantMessageAddressInput!
+}
+
+"""
+An instant message address; it needs a username.
+"""
+input InstantMessageAddressInput {
+  """
+  The user name on the service.
+  """
+  username: String
+
+  """
+  The service, such as Skype.
+  """
+  service: String
+}
+
+input LabeledDateComponentsInput {
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: DateComponentsInput!
+}
+
+"""
+A day that may have no year.
+"""
+input DateComponentsInput {
+  """
+  Identifier of the calendar the parts are in, such as chinese or hebrew; absent for Gregorian.
+  """
+  calendar: String
+
+  """
+  The era, for a calendar other than Gregorian.
+  """
+  era: Int
+
+  """
+  The year; absent for a date without one.
+  """
+  year: Int
+
+  """
+  The month, from 1.
+  """
+  month: Int!
+
+  """
+  The day of the month, from 1.
+  """
+  day: Int!
+
+  """
+  True when the month is a leap month of a lunar calendar.
+  """
+  isLeapMonth: Boolean
+}
+
+input ContactPatch {
+  """
+  PERSON, or ORGANIZATION for a card shown by its company name.
+  """
+  contactType: ContactType
+
+  """
+  A title before the name, such as Dr.
+  """
+  namePrefix: String
+
+  """
+  The first name.
+  """
+  givenName: String
+
+  """
+  The middle name.
+  """
+  middleName: String
+
+  """
+  The last name.
+  """
+  familyName: String
+
+  """
+  A former last name, such as a maiden name.
+  """
+  previousFamilyName: String
+
+  """
+  A suffix after the name, such as Jr.
+  """
+  nameSuffix: String
+
+  """
+  The nickname.
+  """
+  nickname: String
+
+  """
+  How the first name is pronounced.
+  """
+  phoneticGivenName: String
+
+  """
+  How the middle name is pronounced.
+  """
+  phoneticMiddleName: String
+
+  """
+  How the last name is pronounced.
+  """
+  phoneticFamilyName: String
+
+  """
+  How the organization name is pronounced.
+  """
+  phoneticOrganizationName: String
+
+  """
+  The company or organization.
+  """
+  organizationName: String
+
+  """
+  The department within the organization.
+  """
+  departmentName: String
+
+  """
+  The job title.
+  """
+  jobTitle: String
+
+  """
+  Phone numbers, in the card's order. Changes to this list; entries the patch does not name keep their identifier, label, and value.
+  """
+  phoneNumbers: LabeledPhoneNumberChanges
+
+  """
+  Email addresses, in the card's order. Changes to this list; entries the patch does not name keep their identifier, label, and value.
+  """
+  emailAddresses: LabeledStringChanges
+
+  """
+  Postal addresses, in the card's order. Changes to this list; entries the patch does not name keep their identifier, label, and value.
+  """
+  postalAddresses: LabeledPostalAddressChanges
+
+  """
+  URLs, in the card's order. Changes to this list; entries the patch does not name keep their identifier, label, and value.
+  """
+  urlAddresses: LabeledStringChanges
+
+  """
+  Related people by name, such as a spouse or an assistant. Changes to this list; entries the patch does not name keep their identifier, label, and value.
+  """
+  contactRelations: LabeledContactRelationChanges
+
+  """
+  Social profiles. Changes to this list; entries the patch does not name keep their identifier, label, and value.
+  """
+  socialProfiles: LabeledSocialProfileChanges
+
+  """
+  Instant message addresses. Changes to this list; entries the patch does not name keep their identifier, label, and value.
+  """
+  instantMessageAddresses: LabeledInstantMessageAddressChanges
+
+  """
+  Dates other than the birthday, such as an anniversary. Changes to this list; entries the patch does not name keep their identifier, label, and value.
+  """
+  dates: LabeledDateComponentsChanges
+
+  """
+  The birthday in the Gregorian calendar; omit year for a birthday without one.
+  """
+  birthday: DateComponentsInput
+
+  """
+  The birthday in another calendar; calendar is required, such as chinese or hebrew.
+  """
+  nonGregorianBirthday: DateComponentsInput
+
+  """
+  The note, set through Contacts scripting after the card's other changes are saved; this launches Contacts when it is not running.
+  """
+  note: String
+
+  """
+  The card's picture as base64 of an image such as PNG or JPEG. The request body is limited to 1 MiB, which allows a picture of about 700 KB.
+  """
+  imageData: String
+
+  """
+  Values to remove. A list key empties the whole list; IMAGE_DATA removes the picture. A key cannot be both set and cleared.
+  """
+  clearFields: [ContactKey!]
+}
+
+"""
+Changes to this list; entries the patch does not name keep their identifier, label, and value.
+"""
+input LabeledPhoneNumberChanges {
+  """
+  Entries to append.
+  """
+  add: [LabeledPhoneNumberInput!]
+
+  """
+  Entries to change, by identifier. Only the label or the value parts that are present change; a label of "" removes the label.
+  """
+  update: [LabeledPhoneNumberUpdate!]
+
+  """
+  Identifiers of entries to remove.
+  """
+  remove: [ID!]
+}
+
+input LabeledPhoneNumberUpdate {
+  """
+  Identifier of the entry to change, from the card.
+  """
+  identifier: ID!
+
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: PhoneNumberInput
+}
+
+"""
+Changes to this list; entries the patch does not name keep their identifier, label, and value.
+"""
+input LabeledStringChanges {
+  """
+  Entries to append.
+  """
+  add: [LabeledStringInput!]
+
+  """
+  Entries to change, by identifier. Only the label or the value parts that are present change; a label of "" removes the label.
+  """
+  update: [LabeledStringUpdate!]
+
+  """
+  Identifiers of entries to remove.
+  """
+  remove: [ID!]
+}
+
+input LabeledStringUpdate {
+  """
+  Identifier of the entry to change, from the card.
+  """
+  identifier: ID!
+
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: String
+}
+
+"""
+Changes to this list; entries the patch does not name keep their identifier, label, and value.
+"""
+input LabeledPostalAddressChanges {
+  """
+  Entries to append.
+  """
+  add: [LabeledPostalAddressInput!]
+
+  """
+  Entries to change, by identifier. Only the label or the value parts that are present change; a label of "" removes the label.
+  """
+  update: [LabeledPostalAddressUpdate!]
+
+  """
+  Identifiers of entries to remove.
+  """
+  remove: [ID!]
+}
+
+input LabeledPostalAddressUpdate {
+  """
+  Identifier of the entry to change, from the card.
+  """
+  identifier: ID!
+
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: PostalAddressInput
+}
+
+"""
+Changes to this list; entries the patch does not name keep their identifier, label, and value.
+"""
+input LabeledContactRelationChanges {
+  """
+  Entries to append.
+  """
+  add: [LabeledContactRelationInput!]
+
+  """
+  Entries to change, by identifier. Only the label or the value parts that are present change; a label of "" removes the label.
+  """
+  update: [LabeledContactRelationUpdate!]
+
+  """
+  Identifiers of entries to remove.
+  """
+  remove: [ID!]
+}
+
+input LabeledContactRelationUpdate {
+  """
+  Identifier of the entry to change, from the card.
+  """
+  identifier: ID!
+
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: ContactRelationInput
+}
+
+"""
+Changes to this list; entries the patch does not name keep their identifier, label, and value.
+"""
+input LabeledSocialProfileChanges {
+  """
+  Entries to append.
+  """
+  add: [LabeledSocialProfileInput!]
+
+  """
+  Entries to change, by identifier. Only the label or the value parts that are present change; a label of "" removes the label.
+  """
+  update: [LabeledSocialProfileUpdate!]
+
+  """
+  Identifiers of entries to remove.
+  """
+  remove: [ID!]
+}
+
+input LabeledSocialProfileUpdate {
+  """
+  Identifier of the entry to change, from the card.
+  """
+  identifier: ID!
+
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: SocialProfileInput
+}
+
+"""
+Changes to this list; entries the patch does not name keep their identifier, label, and value.
+"""
+input LabeledInstantMessageAddressChanges {
+  """
+  Entries to append.
+  """
+  add: [LabeledInstantMessageAddressInput!]
+
+  """
+  Entries to change, by identifier. Only the label or the value parts that are present change; a label of "" removes the label.
+  """
+  update: [LabeledInstantMessageAddressUpdate!]
+
+  """
+  Identifiers of entries to remove.
+  """
+  remove: [ID!]
+}
+
+input LabeledInstantMessageAddressUpdate {
+  """
+  Identifier of the entry to change, from the card.
+  """
+  identifier: ID!
+
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: InstantMessageAddressInput
+}
+
+"""
+Changes to this list; entries the patch does not name keep their identifier, label, and value.
+"""
+input LabeledDateComponentsChanges {
+  """
+  Entries to append.
+  """
+  add: [LabeledDateComponentsInput!]
+
+  """
+  Entries to change, by identifier. Only the label or the value parts that are present change; a label of "" removes the label.
+  """
+  update: [LabeledDateComponentsUpdate!]
+
+  """
+  Identifiers of entries to remove.
+  """
+  remove: [ID!]
+}
+
+input LabeledDateComponentsUpdate {
+  """
+  Identifier of the entry to change, from the card.
+  """
+  identifier: ID!
+
+  """
+  A stored token, a custom label, or the word for a built-in label such as home, work, mobile, or other. Omitted, the entry has no label.
+  """
+  label: String
+
+  """
+  The entry's value.
+  """
+  value: DateComponentsInput
+}
+
+type DeleteContactResult {
+  """
+  Identifier of what was deleted.
+  """
+  deletedId: ID!
+
+  """
+  The deleted card as a vCard 3.0. It carries the note when Contacts scripting answered.
+  """
+  vCard: String!
+}
+
+input CreateGroupInput {
+  """
+  The group's name; not blank.
+  """
+  name: String!
+
+  """
+  Container to store the group in; defaults to the container new cards go to.
+  """
+  containerIdentifier: ID
+}
+
+input GroupPatch {
+  """
+  The group's name; not blank.
+  """
+  name: String!
+}
+
+type DeleteResult {
+  """
+  Identifier of what was deleted.
+  """
+  deletedId: ID!
+}
